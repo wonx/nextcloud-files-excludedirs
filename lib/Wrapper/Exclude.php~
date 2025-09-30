@@ -51,7 +51,7 @@ class Exclude extends Wrapper {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function verifyPath(string $path, string $fileName): void {
+	public function verifyPath($path, $fileName) {
 		if ($this->excludedPath($path) ||
 				$this->excludedPath(implode(DIRECTORY_SEPARATOR, [$path, $fileName]))) {
 			throw new InvalidDirectoryException();

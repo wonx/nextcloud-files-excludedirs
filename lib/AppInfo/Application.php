@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2017 Robin Appelman <robin@icewind.nl>
  *
@@ -20,30 +21,47 @@
  */
 
 namespace OCA\Files_ExcludeDirs\AppInfo;
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use OCA\Files_ExcludeDirs\Wrapper\Manager;
-use OCA\Provisioning_API\UserInfo\UserInfoManager;
 use OCP\AppFramework\App;
 use OCP\AppFramework\IAppContainer;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\AppFramework\Bootstrap\IBootContext;
 
-class Application extends App {
-	public function __construct(array $urlParams = []) {
-		parent::__construct('files_excludedirs', $urlParams);
+class Application extends App implements IBootstrap {
+    public const APP_ID = 'files_excludedirs';
 
-		$container = $this->getContainer();
+    public function __construct(array $urlParams = []) {
+        parent::__construct(self::APP_ID, $urlParams);
 
-		$container->registerService(Manager::class, function (IAppContainer $c) {
-			$server = $c->getServer();
-			return new Manager(
-				$server->getConfig()
-			);
-		});
-	}
+        $container = $this->getContainer();
 
-	public function register() {
-		$container = $this->getContainer();
-		$manager = $container->query(Manager::class);
+        $container->registerService(Manager::class, function (IAppContainer $c) {
+            $server = $c->getServer();
+            return new Manager(
+                $server->getConfig()
+            );
+        });
+    }
 
-		\OCP\Util::connectHook('OC_Filesystem', 'preSetup', $manager, 'setupStorageWrapper');
-	}
+    /**
+     * New system: here we register services, listeners, hooks, etc.
+     */
+    public function register(IRegistrationContext $context): void {
+        // We obtain the container and the manager
+        $container = $this->getContainer();
+        $manager = $container->query(Manager::class);
+
+        // We connect the hook, just like before
+        \OCP\Util::connectHook('OC_Filesystem', 'preSetup', $manager, 'setupStorageWrapper');
+    }
+
+    /**
+     * Here we can initialize stuff in runtime if necessary.
+     */
+    public function boot(IBootContext $context): void {
+        // Not necessary for now
+    }
 }
