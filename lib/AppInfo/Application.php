@@ -20,12 +20,12 @@
  *
  */
 
+
 namespace OCA\Files_ExcludeDirs\AppInfo;
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use OCA\Files_ExcludeDirs\Wrapper\Manager;
+use OCA\Files_ExcludeDirs\Wrapper\Exclude;
 use OCP\AppFramework\App;
-use OCP\AppFramework\IAppContainer;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Bootstrap\IBootContext;
@@ -35,33 +35,29 @@ class Application extends App implements IBootstrap {
 
     public function __construct(array $urlParams = []) {
         parent::__construct(self::APP_ID, $urlParams);
-
-        $container = $this->getContainer();
-
-        $container->registerService(Manager::class, function (IAppContainer $c) {
-            $server = $c->getServer();
-            return new Manager(
-                $server->getConfig()
-            );
-        });
     }
 
-    /**
-     * New system: here we register services, listeners, hooks, etc.
-     */
-    public function register(IRegistrationContext $context): void {
-        // We obtain the container and the manager
-        $container = $this->getContainer();
-        $manager = $container->query(Manager::class);
+    public function register(IRegistrationContext $context): void {}
 
-        // We connect the hook, just like before
-        \OCP\Util::connectHook('OC_Filesystem', 'preSetup', $manager, 'setupStorageWrapper');
-    }
-
-    /**
-     * Here we can initialize stuff in runtime if necessary.
-     */
     public function boot(IBootContext $context): void {
-        // Not necessary for now
+        // We connect to 'preSetup' using Nextcloud's native Hook manager.
+        // This ensures our wrapper is re-registered immediately after Nextcloud
+        // wipes and resets the storage loader during setup!
+        \OC_Hook::connect('OC_Filesystem', 'preSetup', $this, 'setupWrapper');
+    }
+
+    /**
+     * Callback for 'preSetup' hook
+     */
+    public function setupWrapper($params = []): void {
+        $server = $this->getContainer()->getServer();
+        $config = $server->get(\OCP\IConfig::class);
+
+        \OC\Files\Filesystem::addStorageWrapper('files_excludedirs', function ($mountPoint, $storage) use ($config) {
+            $exclude = json_decode(
+                $config->getAppValue('files_excludedirs', 'exclude', '[".snapshot"]')
+            );
+            return new Exclude(['storage' => $storage, 'exclude' => $exclude]);
+        });
     }
 }
