@@ -65,6 +65,15 @@ occ files_excludedirs:clean-cache
 
 This command parses your active exclusion patterns, searches the database using Doctrine DBAL, and safely deletes matching records in one go.
 
+#### Previewing Affected Files (Dry-Run Mode)
+To see exactly what files and folders match your exclusion patterns and would be deleted without actually making any database changes, you can use the `--dry-run` (or `-d`) option:
+
+```bash
+occ files_excludedirs:clean-cache --dry-run
+```
+
+This performs a safe, read-only search of your database and displays a preview list (limited to the first 50 results to prevent terminal flooding) along with a summary of matching entries.
+
 ### Method B: Scan the Parent Folder
 Alternatively, you can force Nextcloud to perform a directory differential sync. By scanning the **parent** folder of your excluded directory, Nextcloud will notice the excluded folder is hidden (blocked by our filesystem wrapper) and recursively delete it and its children from the cache database:
 
