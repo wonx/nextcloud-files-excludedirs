@@ -10,7 +10,7 @@ Excludes directories and files from being added to the Nextcloud file cache.
   or folder that matches any of the rules.
 
 ## Compatibility
-Should be compatible up to Nextcloud 23.x.
+Should be compatible up to Nextcloud 34.x.
 
 ## Installation
 ### From Package
@@ -52,13 +52,24 @@ This will exclude:
   `pattern/xyz/match` and `pattern/abc/match`.
 
 ## Removing Unwanted Existing Files from Nextcloud File Cache
-Even with this plugin enabled, **neither** a file scan (`occ files:scan --all`) nor
-file cleanup (`occ files:cleanup`) **is sufficient** to remove excluded paths
-from the file cache. Instead, you will need to remove these files from the
-database using SQL like the following:
+When you add new directories to your exclusion rules, Nextcloud does not automatically delete their existing indexed records from its database file cache. 
 
-```mariadb
-DELETE FROM filecache WHERE filecache.path LIKE '%.snapshot%'
+To remove these files from the database cache, you can choose one of the following methods:
+
+### Method A: Use the Native Cache Cleanup Command (Recommended)
+This app provides a custom CLI command to instantly purge all currently configured excluded directories and files from your Nextcloud database file cache:
+
+```bash
+occ files_excludedirs:clean-cache
+```
+
+This command parses your active exclusion patterns, searches the database using Doctrine DBAL, and safely deletes matching records in one go.
+
+### Method B: Scan the Parent Folder
+Alternatively, you can force Nextcloud to perform a directory differential sync. By scanning the **parent** folder of your excluded directory, Nextcloud will notice the excluded folder is hidden (blocked by our filesystem wrapper) and recursively delete it and its children from the cache database:
+
+```bash
+occ files:scan --path="username/files/path_to_parent_folder"
 ```
 
 ## Credits
@@ -67,3 +78,4 @@ Initially authored by Roeland Jago Douma, with contributions from:
 - King
 - Alan J. Pippin
 - Guy Elsmore-Paddock
+- Marc Palaus

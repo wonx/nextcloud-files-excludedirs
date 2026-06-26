@@ -5,7 +5,7 @@
 	<description>Exclude certain directories</description>
 	<licence>AGPL</licence>
 	<author>Guy Elsmore-Paddock</author>
-	<version>1.0.4-beta</version>
+	<version>1.0.5-beta</version>
 	<namespace>Files_ExcludeDirs</namespace>
 	<dependencies>
 		<nextcloud min-version="10" max-version="34" />
@@ -13,5 +13,8 @@
 	<types>
 		<filesystem/>
 	</types>
+	<commands>
+                <command>OCA\Files_ExcludeDirs\Command\CleanCacheCommand</command>
+    </commands>
 	<bootstrap>OCA\Files_ExcludeDirs\AppInfo\Application</bootstrap>
 </info>

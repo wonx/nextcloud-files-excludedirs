@@ -37,7 +37,9 @@ class Application extends App implements IBootstrap {
         parent::__construct(self::APP_ID, $urlParams);
     }
 
-    public function register(IRegistrationContext $context): void {}
+    public function register(IRegistrationContext $context): void {
+        // Leave this empty. The command is now registered declaratively in info.xml!
+    }
 
     public function boot(IBootContext $context): void {
         // We connect to 'preSetup' using Nextcloud's native Hook manager.
