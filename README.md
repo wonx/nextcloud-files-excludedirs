@@ -51,6 +51,13 @@ This will exclude:
 - Folders that match the glob pattern `pattern/*/match`, including 
   `pattern/xyz/match` and `pattern/abc/match`.
 
+### Viewing Active Patterns
+To view your currently configured exclusion patterns at any time, run this command:
+
+```bash
+occ config:app:get files_excludedirs exclude
+```
+
 ## Removing Unwanted Existing Files from Nextcloud File Cache
 When you add new directories to your exclusion rules, Nextcloud does not automatically delete their existing indexed records from its database file cache. 
 
