@@ -10,7 +10,7 @@ Excludes directories and files from being added to the Nextcloud file cache.
   or folder that matches any of the rules.
 
 ## Compatibility
-Should be compatible up to Nextcloud 34.x.
+Tested and compatible with Nextcloud versions up to 34.x.
 
 ## Installation
 ### From Package
@@ -34,13 +34,21 @@ Should be compatible up to Nextcloud 34.x.
    permissions set to `0755` and files set to `0644`).
 
 ## Configuring Excluded Path Patterns
-The default rule is to exclude paths that match `[".snapshot"]` (i.e., to
-exclude Btrfs snapshot folders from being indexed). 
+You can configure your exclusion rules either directly through the Nextcloud Web Admin interface or via the Command Line Interface (CLI).
 
-There is no settings page (yet) for this plugin, but the default rule can be
-overridden using the Nextcloud CLI using a command like the following:
+### 1. Web Administration Interface (Recommended)
+This app registers a dedicated **Exclude Directories** menu on the left sidebar of your Nextcloud Administration Settings. 
+- **Configure:** Edit your list of patterns directly inside the text area (one pattern per line).
+- **Preview:** Click **Preview Changes** to run a safe, read-only dry-run scan of your database cache.
+- **Save:** Click **Save Patterns** to write your rules to Nextcloud.
+- **Cleanup:** Click **Run Database Cleanup** to instantly delete matching excluded paths from the SQL file cache database.
 
-```
+### 2. Command Line Interface (CLI)
+The default rule is to exclude paths that match `[".snapshot"]` (i.e., to exclude Btrfs snapshot folders from being indexed). 
+
+The default rule can be overridden using the Nextcloud CLI with a command like the following:
+
+```bash
 occ config:app:set files_excludedirs exclude \
     --value '[".snapshot","anotherfolder", "pattern/*/match"]'
 ```
@@ -88,6 +96,15 @@ Alternatively, you can force Nextcloud to perform a directory differential sync.
 occ files:scan --path="username/files/path_to_parent_folder"
 ```
 
+## Important Limitations on Mount Points and Shared Folders
+Exclusion patterns are matched against the database `path` column. In Nextcloud, file paths in the database are stored **relative to the root of each storage mount** (including External Storages and Shared Folders).
+
+- **Subdirectories inside a storage** (e.g., `Documents/Temp` inside your primary storage) have database paths starting with `Documents/Temp` and can be excluded normally.
+- **Root-level Mounts / Shared Folders** (e.g., if a folder like `Shared/Holiday` is mounted directly as an incoming share or an external storage) are treated as their own independent storage roots. The files inside them are cached starting at their own root (e.g., `path = "photo.jpg"`). 
+
+Because the parent mount path (`Shared/Holiday`) is not part of the database file path, you cannot exclude files inside direct storage roots using a path prefix that includes the mount point name.
+
+
 ## Credits
 Initially authored by Roeland Jago Douma, with contributions from:
 - Robin Appelman
@@ -95,3 +112,11 @@ Initially authored by Roeland Jago Douma, with contributions from:
 - Alan J. Pippin
 - Guy Elsmore-Paddock
 - Marc Palaus
+
+## Project History
+This repository is a community-maintained continuation of the `files_excludedirs` project. It traces its codebase and history through the following repositories:
+
+1. **Original Version:** [nextcloud/files_excludedirs](https://github.com/nextcloud/files_excludedirs)
+2. **First Fork:** [apippin/files_excludedirs](https://github.com/apippin/files_excludedirs)
+3. **Second Fork:** [Inveniem/nextcloud-files-excludedirs](https://github.com/Inveniem/nextcloud-files-excludedirs)
+4. **Current Version:** [wonx/nextcloud-files-excludedirs](https://github.com/wonx/nextcloud-files-excludedirs) (Active, updated for Nextcloud 32/34, and enhanced with a native database cache cleanup utility)

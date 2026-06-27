@@ -7,18 +7,18 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use OCP\IConfig;
-use OCP\IDBConnection;
+use OCA\Files_ExcludeDirs\Service\CleanupService;
 
 class CleanCacheCommand extends Command {
     /** @var IConfig */
     private $config;
-    /** @var IDBConnection */
-    private $db;
+    /** @var CleanupService */
+    private $cleanupService;
 
-    public function __construct(IConfig $config, IDBConnection $db) {
+    public function __construct(IConfig $config, CleanupService $cleanupService) {
         parent::__construct();
         $this->config = $config;
-        $this->db = $db;
+        $this->cleanupService = $cleanupService;
     }
 
     protected function configure(): void {
@@ -51,7 +51,6 @@ class CleanCacheCommand extends Command {
         }
 
         foreach ($excludePatterns as $pattern) {
-            // Safety check: Prevent accidental wildcards from wiping the whole DB
             if (trim($pattern) === '' || $pattern === '*') {
                 continue;
             }
@@ -59,39 +58,23 @@ class CleanCacheCommand extends Command {
             $output->writeln("Evaluating pattern: <comment>$pattern</comment>");
 
             if ($dryRun) {
-                // Safe read-only preview of what would be deleted
-                $qb = $this->db->getQueryBuilder();
-                $qb->select('path')
-                   ->from('filecache')
-                   ->where($qb->expr()->like('path', $qb->createNamedParameter('%' . $pattern . '%')));
-
-                $result = $qb->executeQuery();
+                $results = $this->cleanupService->preview([$pattern]);
+                $limit = 50;
                 
-                $count = 0;
-                $limit = 50; // Prevents terminal flooding
-                
-                while ($row = $result->fetchAssociative()) {
-                    if ($count < $limit) {
-                        $output->writeln("  - <comment>" . $row['path'] . "</comment>");
-                    }
-                    $count++;
+                foreach ($results['paths'] as $path) {
+                    $output->writeln("  - <comment>" . $path . "</comment>");
                 }
                 
-                if ($count > $limit) {
-                    $remaining = $count - $limit;
+                if ($results['count'] > $limit) {
+                    $remaining = $results['count'] - $limit;
                     $output->writeln("    ... and <comment>$remaining</comment> more paths.");
                 }
                 
-                $output->writeln("<info>Found $count matching cached file entries.</info>");
+                $output->writeln("<info>Found {$results['count']} matching cached file entries.</info>");
                 $output->writeln('');
             } else {
-                // Actual delete logic
-                $qb = $this->db->getQueryBuilder();
-                $qb->delete('filecache')
-                   ->where($qb->expr()->like('path', $qb->createNamedParameter('%' . $pattern . '%')));
-                
-                $rowsAffected = $qb->executeStatement();
-                $output->writeln("<info>Deleted $rowsAffected cached file entries.</info>");
+                $deleted = $this->cleanupService->cleanup([$pattern]);
+                $output->writeln("<info>Deleted $deleted cached file entries.</info>");
                 $output->writeln('');
             }
         }
