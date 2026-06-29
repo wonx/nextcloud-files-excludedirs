@@ -25,8 +25,8 @@ This is extremely useful when using External Storages or shared folders that con
         <category>files</category>
         <category>customization</category>
         <website>https://github.com/wonx/nextcloud-files-excludedirs</website>
-        <repository>https://github.com/wonx/nextcloud-files-excludedirs</repository>
-        <issue>https://github.com/wonx/nextcloud-files-excludedirs/issues</issue>
+                <bugs>https://github.com/wonx/nextcloud-files-excludedirs/issues</bugs>
+                <repository>https://github.com/wonx/nextcloud-files-excludedirs.git</repository>
         <settings>
                 <admin-section>OCA\Files_ExcludeDirs\Settings\AdminSection</admin-section>
                 <admin>OCA\Files_ExcludeDirs\Settings\AdminSettings</admin>
