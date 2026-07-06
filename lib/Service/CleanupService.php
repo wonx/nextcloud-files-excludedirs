@@ -33,7 +33,8 @@ class CleanupService {
                );
 
             $result = $qb->executeQuery();
-            while ($row = $result->fetchAssociative()) {
+            // Support both Nextcloud 34 (fetchAssociative) and older versions like NC 32 (fetch)
+            while ($row = method_exists($result, 'fetchAssociative') ? $result->fetchAssociative() : $result->fetch()) {
                 if ($results['count'] < $limit) {
                     $results['paths'][] = $row['path'];
                 }

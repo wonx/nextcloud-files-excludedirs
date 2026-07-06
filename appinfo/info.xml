@@ -14,7 +14,7 @@ This is extremely useful when using External Storages or shared folders that con
 - Native `occ files_excludedirs:clean-cache` command-line utility for high-speed cache database cleanup.]]></description>
         <licence>AGPL</licence>
         <author>Guy Elsmore-Paddock, Marc Palaus</author>
-        <version>2.0.1</version>
+        <version>2.0.2</version>
         <namespace>Files_ExcludeDirs</namespace>
         <dependencies>
                 <nextcloud min-version="32" max-version="34" />
