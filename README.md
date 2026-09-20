@@ -10,7 +10,7 @@ Excludes directories and files from being added to the Nextcloud file cache.
   or folder that matches any of the rules.
 
 ## Compatibility
-Tested and compatible with Nextcloud versions up to 34.x.
+Tested and compatible with Nextcloud versions up to 35.x.
 
 ## Installation
 ### From Package
